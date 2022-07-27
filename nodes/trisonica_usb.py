@@ -7,20 +7,42 @@ from optparse import OptionParser
 from trisonica_ros.msg import trisonica_msg
 
 class Trisonica(object):
-    def __init__(self, port="/dev/ttyUSB0", topic='/trisonica', baud=115200, rate=400):
+    def __init__(self, port="/dev/ttyUSB1", topic='/trisonica', baud=115200, rate=400):
         baud = 115200
         self.rate = 400 # rate to check/publish new data, Hz
-        print('Connecting to: ', port)
-        self.connection = serial.Serial(port, baud, timeout=0.01)
+
+        self.nodename = rospy.get_name().rstrip('/')
+        self.params = rospy.get_param(self.nodename, {})
+
+        # Set serial port name
+        if rospy.has_param(self.nodename + '/port'):
+            self.port = self.params['port']
+        else:
+            self.port = port
+
+        # Set topic name
+        if rospy.has_param(self.nodename + '/topic'):
+            self.topic = self.nodename + '/' + self.params['topic']
+        else:
+            self.topic = topic
+
+        rospy.logwarn('Trisonica topic: ' + self.topic)
+
+        # Connect to serial port
+        rospy.logwarn('Connecting to: ' + self.port)
+        self.connection = serial.Serial(self.port, baud, timeout=0.01)
         self.connection.flush()
-        print('Connected.')
-        self.publisher = rospy.Publisher(topic, trisonica_msg, queue_size=10)
+        rospy.logwarn('Connected.')
+
+        # Define publisher
+        self.publisher = rospy.Publisher(self.topic, trisonica_msg, queue_size=10)
 
     def main(self):
         msg = trisonica_msg()
         rate = rospy.Rate(self.rate)
         while not rospy.is_shutdown():
             data = self.connection.readline()
+            #rospy.logwarn(data)
             data = data.decode()
             if data is not None and len(data) > 10:
                 if 1: #data[0] == 'S':
@@ -69,13 +91,13 @@ class Trisonica(object):
                         pass
 
                     try:
-                        msg.pressure = float( data.split('P ')[1].lstrip().split(' ')[0] )                
+                        msg.pressure = float( data.split('P ')[1].lstrip().split(' ')[0] )
                     except:
                         msg.pressure = np.nan
                         pass
 
                     try:
-                        msg.humidity = float( data.split('H ')[1].lstrip().split(' ')[0] )                
+                        msg.humidity = float( data.split('H ')[1].lstrip().split(' ')[0] )
                     except:
                         msg.humidity = np.nan
                         pass
@@ -128,7 +150,7 @@ class Trisonica(object):
 if __name__ == '__main__':
 
     parser = OptionParser()
-    parser.add_option("--port", type="str", dest="port", default='/dev/ttyUSB0',
+    parser.add_option("--port", type="str", dest="port", default='/dev/ttyUSB1',
                         help="port to which trisonica is connected")
     parser.add_option("--topic", type="str", dest="topic", default='/trisonica',
                         help="rostopic to publish to")
