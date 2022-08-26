@@ -73,7 +73,7 @@ class Trisonica(object):
                         pass
 
                     try:
-                        msg.westeast    = float( data.split('V ')[1].lstrip().split(' ')[0] )
+                        msg.westeast    = float( data.split(' V ')[1].lstrip().split(' ')[0] )
                     except:
                         msg.westeast = np.nan
                         pass
