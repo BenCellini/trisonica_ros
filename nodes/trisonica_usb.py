@@ -61,9 +61,15 @@ class Trisonica(object):
                         pass
 
                     try:
-                        msg.direction   = float( data.split('D ')[1].lstrip().split(' ')[0])
+                        msg.direction   = float( data.split(' D ')[1].lstrip().split(' ')[0])
                     except:
                         msg.direction = np.nan
+                        pass
+
+                    try:
+                        msg.vertdirection   = float( data.split('DV ')[1].lstrip().split(' ')[0])
+                    except:
+                        msg.vertdirection = np.nan
                         pass
 
                     try:

@@ -2,6 +2,7 @@ Header header
 float32 speed
 float32 speed2d
 float32 direction
+float32 vertdirection
 float32 northsouth
 float32 westeast
 float32 updown
